@@ -12,7 +12,6 @@ import SwiftyJSON
 // Bay Info Model
 class BayInfo: NSObject {
     
-    // bay_id, lat, lon, st_marker_id
     var bay_id : String?
     var lat : Double = 0
     var lon : Double = 0

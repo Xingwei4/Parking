@@ -18,6 +18,9 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
     var nearBayList: [String]?
     var bayInfoList: [BayInfo]?
     var parkingStatusList: [ParkingStatus]?
+    var wilsonLocationList: [WilsonLocation]?
+    var wilsonFeeList: [WilsonFee]?
+    var bayFeeList: [BayFee]?
     
     // Button Related Variables
     var onStreetMode: Bool = true
@@ -177,6 +180,7 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
         case 1 :
             self.mapView.clear()
             onStreetMode = false
+            showWilsonOnMap()
             print ("Off-Street Mode")
             break;
         default:
@@ -188,8 +192,75 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
     
     // Refresh function (Refresh Button)
     @objc func refreshButtonClicked() {
-        showBaysOnMap()
-       
+        if onStreetMode == true {
+            showBaysOnMap()
+        }else if onStreetMode == false {
+            showWilsonOnMap()
+        }
+        
+    }
+    
+    // Show Wilson On Map
+    func showWilsonOnMap(){
+        self.view.showHudInView(view: view)
+        NetworkTool.sharedTools.getWilsonLocation { (wilsonLocation, error) in
+            self.view.hideHud()
+            if error == nil {
+                self.wilsonLocationList = wilsonLocation
+                print("WilsonLocation get successfully.")
+                // Show Wilson Markers
+                self.getWilsonFee()
+            }
+            else{
+                self.view.showTextHud(content: "Network Error.")
+            }
+        }
+    }
+    
+    // Get Wilson Fee
+    func getWilsonFee(){
+        NetworkTool.sharedTools.getWilsonFee { (wilsonFee, error) in
+            if error == nil {
+                self.wilsonFeeList = wilsonFee
+                print("WilsonFee get successfully.")
+                // Show Wilson Markers
+                self.showWilsonMarkers()
+            }
+            else{
+                self.view.showTextHud(content: "Network Error.")
+            }
+        }
+    }
+    
+    // Print Wilson Markers
+    func showWilsonMarkers() {
+        // Clear all Previous Marker
+        self.mapView.clear()
+    
+        let wilsonMarker = UIImageView(image: UIImage(named: "Parking.png"))
+        
+        for wilson in self.wilsonLocationList! {
+            let parkCoordinate = CLLocationCoordinate2D(latitude: wilson.lat, longitude: wilson.lon)
+            var feeString: String = ""
+            
+            for record in self.wilsonFeeList! {
+                if wilson.id == record.place_id {
+                    feeString = feeString + record.scope! + "  " + record.rate! + "\n"
+                }
+    
+            }
+            
+            if self.mapView.projection.contains(parkCoordinate) {
+                let marker = GMSMarker()
+                
+                marker.iconView = wilsonMarker
+                marker.position = parkCoordinate
+                marker.title = wilson.place
+                marker.map = self.mapView
+                marker.snippet = feeString
+                
+            }
+        }
     }
     
     // Show Bays On Map
@@ -212,10 +283,26 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
     func getParkingStatus(){
         self.view.showHudInView(view: view)        
         NetworkTool.sharedTools.getParkingStatus { (parkingStatus, error) in
-            self.view.hideHud()
+            //self.view.hideHud()
             if error == nil {
                 self.parkingStatusList = parkingStatus
                 print("ParkingStatus get successfully.")
+                // Show Markers
+                self.getBayFee()
+            }
+            else{
+                self.view.showTextHud(content: "Network Error.")
+            }
+        }
+    }
+    
+    // Get Bay fee
+    func getBayFee(){
+        NetworkTool.sharedTools.getBayFee { ( bayFee, error) in
+            if error == nil {
+                self.bayFeeList = bayFee
+                print("BayFee get successfully.")
+                self.view.hideHud()
                 // Show Markers
                 self.showMarkersOnMap()
             }
@@ -225,12 +312,14 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
         }
     }
     
+    
+    
     // Print Markers
     func showMarkersOnMap() {
         // Clear all Previous Marker
         self.mapView.clear()
         
-        //
+        // Get Marker Images
         let blueMarker = UIImageView(image: UIImage(named: "Blue P.png"))
         let redMarker = UIImageView(image: UIImage(named: "Red P.png"))
         
@@ -240,11 +329,26 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
             var status: String?
             
             for record in self.parkingStatusList! {
-                if id == record.bay_id{
+                if id == record.bay_id {
                     status = record.status
                     break
                 }
             }
+            
+            var feeString: String = ""
+            
+            for record in self.bayFeeList! {
+                if id == record.bay_id {
+                    feeString = feeString + record.desc1! + "\n"
+                    if !record.desc2!.isEqual(""){
+                        feeString = feeString + record.desc2! + "\n"
+                    }
+                    if !record.desc3!.isEqual(""){
+                        feeString = feeString + record.desc3! + "\n"
+                    }
+                }
+            }
+            
             
             if self.mapView.projection.contains(parkCoordinate) {
                 let marker = GMSMarker()
@@ -262,7 +366,7 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
                 marker.position = parkCoordinate
                 marker.title = bay.st_marker_id
                 marker.map = self.mapView
-                marker.snippet = "Price"
+                marker.snippet = feeString
             }
         }
     }
@@ -321,7 +425,11 @@ extension RTParkingViewController: GMSAutocompleteViewControllerDelegate {
             self.mapView.animate(toLocation:place.coordinate)
         })
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.0) {
-            self.showBaysOnMap()
+            if self.onStreetMode == true {
+                self.showBaysOnMap()
+            }else if self.onStreetMode == false {
+                self.showWilsonOnMap()
+            }
         }
     }
     

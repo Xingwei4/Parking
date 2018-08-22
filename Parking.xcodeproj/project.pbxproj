@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		01802305EC12DCE4104719EE /* libPods-Parking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E8134E622A76CBDA77A3270 /* libPods-Parking.a */; };
+		B64711BE212DAEEA006BBCC5 /* BayFee.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64711BD212DAEEA006BBCC5 /* BayFee.swift */; };
 		B682B72B212B91E700992C9D /* RealTimeParkingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B682B72A212B91E700992C9D /* RealTimeParkingController.swift */; };
 		B682B72E212B9DA000992C9D /* ParkingPrediction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B682B72D212B9DA000992C9D /* ParkingPrediction.swift */; };
 		B682B73C212BCFC600992C9D /* ViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B682B73B212BCFC600992C9D /* ViewExtension.swift */; };
+		B6989F4D212D91A4002DDC75 /* WilsonFee.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6989F4C212D91A3002DDC75 /* WilsonFee.swift */; };
+		B6989F4F212D91B1002DDC75 /* WilsonLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6989F4E212D91B1002DDC75 /* WilsonLocation.swift */; };
 		B6A82F6C2123C3E900A5C1C6 /* BayInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A82F6B2123C3E900A5C1C6 /* BayInfo.swift */; };
 		B6CC7857212A6C68008261BA /* ParkingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CC7856212A6C68008261BA /* ParkingStatus.swift */; };
-		B6CC7859212A6C95008261BA /* OffStreet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CC7858212A6C95008261BA /* OffStreet.swift */; };
 		B6E7E6DE21214EE3009C9ADD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E7E6DD21214EE3009C9ADD /* AppDelegate.swift */; };
 		B6E7E6E021214EE3009C9ADD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E7E6DF21214EE3009C9ADD /* ViewController.swift */; };
 		B6E7E6E321214EE3009C9ADD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B6E7E6E121214EE3009C9ADD /* Main.storyboard */; };
@@ -25,13 +27,15 @@
 		0D83482C0F80D83AF2CC2723 /* Pods-Parking.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Parking.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Parking/Pods-Parking.debug.xcconfig"; sourceTree = "<group>"; };
 		7E8134E622A76CBDA77A3270 /* libPods-Parking.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Parking.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B137FD99B8EB6AB20F81D898 /* Pods-Parking.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Parking.release.xcconfig"; path = "Pods/Target Support Files/Pods-Parking/Pods-Parking.release.xcconfig"; sourceTree = "<group>"; };
+		B64711BD212DAEEA006BBCC5 /* BayFee.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BayFee.swift; sourceTree = "<group>"; };
 		B682B72A212B91E700992C9D /* RealTimeParkingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealTimeParkingController.swift; sourceTree = "<group>"; };
 		B682B72D212B9DA000992C9D /* ParkingPrediction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParkingPrediction.swift; sourceTree = "<group>"; };
 		B682B73A212BCE3B00992C9D /* MBProgress-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MBProgress-Header.h"; sourceTree = "<group>"; };
 		B682B73B212BCFC600992C9D /* ViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtension.swift; sourceTree = "<group>"; };
+		B6989F4C212D91A3002DDC75 /* WilsonFee.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WilsonFee.swift; sourceTree = "<group>"; };
+		B6989F4E212D91B1002DDC75 /* WilsonLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WilsonLocation.swift; sourceTree = "<group>"; };
 		B6A82F6B2123C3E900A5C1C6 /* BayInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BayInfo.swift; sourceTree = "<group>"; };
 		B6CC7856212A6C68008261BA /* ParkingStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParkingStatus.swift; sourceTree = "<group>"; };
-		B6CC7858212A6C95008261BA /* OffStreet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffStreet.swift; sourceTree = "<group>"; };
 		B6E7E6DA21214EE3009C9ADD /* Parking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Parking.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B6E7E6DD21214EE3009C9ADD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B6E7E6DF21214EE3009C9ADD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -83,7 +87,9 @@
 			children = (
 				B6A82F6B2123C3E900A5C1C6 /* BayInfo.swift */,
 				B6CC7856212A6C68008261BA /* ParkingStatus.swift */,
-				B6CC7858212A6C95008261BA /* OffStreet.swift */,
+				B6989F4C212D91A3002DDC75 /* WilsonFee.swift */,
+				B6989F4E212D91B1002DDC75 /* WilsonLocation.swift */,
+				B64711BD212DAEEA006BBCC5 /* BayFee.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -271,13 +277,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				B682B73C212BCFC600992C9D /* ViewExtension.swift in Sources */,
-				B6CC7859212A6C95008261BA /* OffStreet.swift in Sources */,
 				B6E9F777212434D2005D7C2C /* NetworkTool.swift in Sources */,
 				B6CC7857212A6C68008261BA /* ParkingStatus.swift in Sources */,
+				B6989F4F212D91B1002DDC75 /* WilsonLocation.swift in Sources */,
 				B6E7E6E021214EE3009C9ADD /* ViewController.swift in Sources */,
+				B64711BE212DAEEA006BBCC5 /* BayFee.swift in Sources */,
 				B6A82F6C2123C3E900A5C1C6 /* BayInfo.swift in Sources */,
 				B6E7E6DE21214EE3009C9ADD /* AppDelegate.swift in Sources */,
 				B682B72B212B91E700992C9D /* RealTimeParkingController.swift in Sources */,
+				B6989F4D212D91A4002DDC75 /* WilsonFee.swift in Sources */,
 				B682B72E212B9DA000992C9D /* ParkingPrediction.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
