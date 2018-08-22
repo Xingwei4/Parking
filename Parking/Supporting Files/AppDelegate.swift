@@ -21,6 +21,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Setting of Google services
         GMSServices.provideAPIKey("AIzaSyAr_Kkvd6YtbKbACEbTlpA-wvesnqGyfsE")
         GMSPlacesClient.provideAPIKey("AIzaSyAr_Kkvd6YtbKbACEbTlpA-wvesnqGyfsE")
+        
+        //GMSServices.provideAPIKey("AIzaSyDI1WHPw_SNSJzwc_MMkUj-a2ciMVco_ZA")
+        //GMSPlacesClient.provideAPIKey("AIzaSyDI1WHPw_SNSJzwc_MMkUj-a2ciMVco_ZA")
 
         return true
     }

@@ -12,32 +12,33 @@ import GooglePlaces
 import SnapKit
 import SwiftyJSON
 
-class RTParkingViewController: UIViewController, UIWebViewDelegate{
+class RTParkingViewController: UIViewController, GMSMapViewDelegate{
     
     // Bay Related Variables
     var nearBayList: [String]?
     var bayInfoList: [BayInfo]?
-    var parkingStatusList:[ParkingStatus]?
+    var parkingStatusList: [ParkingStatus]?
     
     // Button Related Variables
-    var switchSignal: Bool = false
+    var onStreetMode: Bool = true
     
     // Google Map View
     var mapView: GMSMapView!
     var placesClient: GMSPlacesClient!
-    var zoomLevel: Float = 15.0
+    var zoomLevel: Float = 17.0
     
     // Location Related Variables
     var currentLocation: CLLocation?
     var locationManager = CLLocationManager()
+    
     // Default Location
     let defaultLocation = CLLocation(latitude: -37.799084, longitude: 144.962975)
     
-    // UI element initialization
+    // UI Element Initialization
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Show success.
+        // Show Success.
         print("Navigation Successful")
         
         // UI Settings (Background, Back Button)
@@ -49,10 +50,9 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
         locationManager = CLLocationManager()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestAlwaysAuthorization()
+        locationManager.delegate = self
         locationManager.distanceFilter = 50
         locationManager.startUpdatingLocation()
-        //locationManager.delegate = self
-        
         placesClient = GMSPlacesClient.shared()
         
         // Create a GMSCameraPosition that tells the map to display the default location with zoom level.
@@ -60,35 +60,45 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
                                               longitude: defaultLocation.coordinate.longitude,
                                               zoom: zoomLevel)
         
-        // View Settings
+        // Map View Settings
         mapView = GMSMapView.map(withFrame: view.bounds, camera: camera)
         mapView.settings.myLocationButton = true
         mapView.settings.compassButton = true
+        mapView.settings.zoomGestures = true
+        mapView.settings.scrollGestures = true
         mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        //mapView.isMyLocationEnabled = true
-        //mapView.isIndoorEnabled = false
-        //mapView.delegate = self
-        //mapView.settings.myLocationButton = false
+        mapView.isMyLocationEnabled = true
+        mapView.isIndoorEnabled = false
+        mapView.delegate = self
+        mapView.isHidden = true
         
         // Add the map to the view, hide it until got a location update.
         view.addSubview(mapView)
+        view.addSubview(searchButton)
         view.addSubview(refreshButton)
         view.addSubview(segControl)
         
-        // Position etting of Refresh button
-        refreshButton.snp.makeConstraints { (make) -> Void in
+        // Position Setting of Search button
+        searchButton.snp.makeConstraints { (make) -> Void in
             make.size.equalTo(CGSize(width : 100, height: 40))
-            make.centerX.equalTo(view)
-            make.bottom.equalTo(view).offset(-30)
-            
+            make.right.equalTo(refreshButton.snp.left).offset(-20)
+            make.bottom.equalTo(view).offset(-20)
         }
         
-        // Position Setting of Switch button
+        // Position Setting of Refresh button
+        refreshButton.snp.makeConstraints { (make) -> Void in
+            make.size.equalTo(CGSize(width : 100, height: 40))
+            make.centerX.equalTo(view).offset(60)
+            make.bottom.equalTo(view).offset(-20)
+        }
+        
+        // Position Setting of Segment Control
         segControl.snp.makeConstraints { (make) -> Void in
             make.centerX.equalTo(view)
             make.top.equalTo(view).offset(80)
-            
         }
+        
+        showBaysOnMap()
         
     }
     
@@ -97,25 +107,39 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
         // Dispose of any resources that can be recreated.
     }
     
-    // Refresh button Creating
-    private lazy var refreshButton : UIButton = {
+    // Create Search Button
+    private lazy var searchButton : UIButton = {
         let button:UIButton = UIButton()
-        button.setTitle("Refresh", for: .normal)
-        button.setTitleColor(UIColor(red: 44/255, green: 124/255, blue: 246/255, alpha: 1) , for: .normal)
-        //button.setBackgroundImage(UIImage(named:"Button.png"), for: UIControlState.normal)
+        button.setTitle("Search", for: .normal)
+        button.setTitleColor(UIColor(red: 44/255, green: 124/255, blue: 246/255, alpha: 1), for: .normal)
         button.layer.cornerRadius = 5
         button.layer.masksToBounds = true
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor(red: 44/255, green: 124/255, blue: 246/255, alpha: 1).cgColor
         button.backgroundColor = UIColor.white
         button.titleLabel?.font = UIFont.systemFont(ofSize: 15)
-        //button.coloor
+        button.addTarget(self,action:#selector(RTParkingViewController.searchButtonClicked),for:.touchUpInside)
+        
+        return button
+    }()
+    
+    // Create Refresh Button
+    private lazy var refreshButton : UIButton = {
+        let button:UIButton = UIButton()
+        button.setTitle("Refresh", for: .normal)
+        button.setTitleColor(UIColor(red: 44/255, green: 124/255, blue: 246/255, alpha: 1), for: .normal)
+        button.layer.cornerRadius = 5
+        button.layer.masksToBounds = true
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor(red: 44/255, green: 124/255, blue: 246/255, alpha: 1).cgColor
+        button.backgroundColor = UIColor.white
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         button.addTarget(self,action:#selector(RTParkingViewController.refreshButtonClicked),for:.touchUpInside)
         
         return button
     }()
     
-    // Segemented Button
+    // Create Segemented Button
     private lazy var segControl : UISegmentedControl = {
         var segArray:[String] = ["On-Street", "Off-Street"]
         let segControl:UISegmentedControl = UISegmentedControl(items: segArray)
@@ -124,33 +148,42 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
         segControl.setWidth(160, forSegmentAt: 0)
         segControl.setWidth(160, forSegmentAt: 1)
         segControl.addTarget(self, action:#selector(RTParkingViewController.segmentChange), for: UIControlEvents.valueChanged)
+        
         return segControl
     }()
-    
-    @objc func segmentChange(sender: AnyObject?){
-        let segControl:UISegmentedControl = sender as! UISegmentedControl
-        switch segControl.selectedSegmentIndex {
-        case 0 :
-            refreshButton.isHidden = false;
-            print ("000 ")
-            break;
-        case 1 :
-            refreshButton.isHidden = true;
-            self.mapView.clear()
-            print ("11111 ")
-            break;
-        default:
-            print ("default ")
-        
-        }
-            
-    }
-    
-    
     
     // Back to previous page (Back Button)
     @objc func back() {
         self.dismiss(animated: true, completion: nil)
+    }
+    
+    // Present the Autocomplete view controller when the button is pressed.
+    @objc func searchButtonClicked() {
+        let SearchController = GMSAutocompleteViewController()
+        SearchController.delegate = self
+        present(SearchController, animated: true, completion: nil)
+    }
+    
+    // Mode change function (Segment Control)
+    @objc func segmentChange(sender: AnyObject?){
+        let segControl:UISegmentedControl = sender as! UISegmentedControl
+        switch segControl.selectedSegmentIndex {
+        case 0 :
+            self.mapView.clear()
+            onStreetMode = true
+            showBaysOnMap()
+            print ("On-Street Mode")
+            break;
+        case 1 :
+            self.mapView.clear()
+            onStreetMode = false
+            print ("Off-Street Mode")
+            break;
+        default:
+            print ("Whatever.")
+            
+        }
+        
     }
     
     // Refresh function (Refresh Button)
@@ -158,17 +191,6 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
         showBaysOnMap()
        
     }
-    
-    // Show Off-Street Parking Space
-    @objc func switchDidChange() {
-        changeSignal()
-        print(switchSignal)
-        
-        if switchSignal == false{
-            self.mapView.clear()
-        }
-    }
-    
     
     // Show Bays On Map
     func showBaysOnMap(){
@@ -208,6 +230,7 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
         // Clear all Previous Marker
         self.mapView.clear()
         
+        //
         let blueMarker = UIImageView(image: UIImage(named: "Blue P.png"))
         let redMarker = UIImageView(image: UIImage(named: "Red P.png"))
         
@@ -223,7 +246,6 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
                 }
             }
             
-            
             if self.mapView.projection.contains(parkCoordinate) {
                 let marker = GMSMarker()
                 if status!.isEqual("Unoccupied") {
@@ -235,25 +257,80 @@ class RTParkingViewController: UIViewController, UIWebViewDelegate{
                 marker.position = parkCoordinate
                 marker.title = bay.st_marker_id
                 marker.map = self.mapView
+                marker.snippet = "Price"
             }
         }
     }
     
+}
+
+// Delegates to handle events for the location manager.
+extension RTParkingViewController: CLLocationManagerDelegate {
     
-    
-    
-    func changeSignal(){
-        if switchSignal == false {
-            switchSignal = true
-        }else {
-            switchSignal = false
-        }
+    // Handle incoming location events.
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let location: CLLocation = locations.last!
+        self.currentLocation = location
         
+        let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
+                                              longitude: location.coordinate.longitude,
+                                              zoom: zoomLevel)
+        
+        if mapView.isHidden {
+            mapView.isHidden = false
+            mapView.camera = camera
+            mapView.animate(to: camera)
+        }
     }
     
+    // Handle authorization for the location manager.
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .restricted:
+            print("Location access was restricted.")
+        case .denied:
+            print("User denied access to location.")
+            // Display the map using the default location.
+            mapView.isHidden = false
+        case .notDetermined:
+            print("Location status not determined.")
+        case .authorizedAlways: fallthrough
+        case .authorizedWhenInUse:
+            print("Location status is OK.")
+        }
+    }
     
-    
-    
-    
-    
+    // Handle location manager errors.
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        locationManager.stopUpdatingLocation()
+        print("Error: \(error)")
+    }
 }
+
+extension RTParkingViewController: GMSAutocompleteViewControllerDelegate {
+    
+    // Handle User's Selection.
+    func viewController(_ viewController: GMSAutocompleteViewController, didAutocompleteWith place: GMSPlace) {
+        self.dismiss(animated: false, completion: nil)
+        DispatchQueue.main.async(execute: {
+            self.mapView.animate(toLocation:place.coordinate)
+        })
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.0) {
+            self.showBaysOnMap()
+        }
+    }
+    
+    // Handel Errors
+    func viewController(_ viewController: GMSAutocompleteViewController, didFailAutocompleteWithError error: Error) {
+        print("Error: \(error)")
+        dismiss(animated: true, completion: nil)
+    }
+    
+    // Handle Cancelation
+    func wasCancelled(_ viewController: GMSAutocompleteViewController) {
+        print("Autocomplete was cancelled.")
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+
