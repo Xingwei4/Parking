@@ -248,12 +248,17 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
             
             if self.mapView.projection.contains(parkCoordinate) {
                 let marker = GMSMarker()
-                if status!.isEqual("Unoccupied") {
-                    marker.iconView = blueMarker
-                }
-                else {
+                if status != nil{
+                    if status!.isEqual("Unoccupied") {
+                        marker.iconView = blueMarker
+                    }
+                    else {
+                        marker.iconView = redMarker
+                    }
+                }else{
                     marker.iconView = redMarker
                 }
+                
                 marker.position = parkCoordinate
                 marker.title = bay.st_marker_id
                 marker.map = self.mapView
