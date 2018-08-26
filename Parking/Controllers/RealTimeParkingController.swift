@@ -15,12 +15,9 @@ import SwiftyJSON
 class RTParkingViewController: UIViewController, GMSMapViewDelegate{
     
     // Bay Related Variables
-    var nearBayList: [String]?
-    var bayInfoList: [BayInfo]?
-    var parkingStatusList: [ParkingStatus]?
     var wilsonLocationList: [WilsonLocation]?
     var wilsonFeeList: [WilsonFee]?
-    var bayFeeList: [BayFee]?
+    var onStreetList: [OnStreetInfo]?
     
     // Button Related Variables
     var onStreetMode: Bool = true
@@ -46,7 +43,8 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
         
         // UI Settings (Background, Back Button)
         view.backgroundColor = UIColor.white
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "Back Button"), style: .done, target: self, action: #selector(RTParkingViewController.back))
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "Back Button")
+            , style: .done, target: self, action: #selector(RTParkingViewController.back))
         navigationItem.title = "Real Time Parking Status"
         
         // Initialize the location manager.
@@ -101,7 +99,7 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
             make.top.equalTo(view).offset(80)
         }
         
-        showBaysOnMap()
+        showOnStreet()
         
     }
     
@@ -174,7 +172,7 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
         case 0 :
             self.mapView.clear()
             onStreetMode = true
-            showBaysOnMap()
+            showOnStreet()
             print ("On-Street Mode")
             break;
         case 1 :
@@ -185,26 +183,78 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
             break;
         default:
             print ("Whatever.")
-            
         }
-        
     }
     
     // Refresh function (Refresh Button)
     @objc func refreshButtonClicked() {
         if onStreetMode == true {
-            showBaysOnMap()
+            showOnStreet()
         }else if onStreetMode == false {
             showWilsonOnMap()
         }
-        
     }
+    
+    // Show On-Street Markers
+    func showOnStreet(){
+        self.view.showHudInView(view: view)
+        
+        let visibleRegion : GMSVisibleRegion = mapView.projection.visibleRegion()
+        let minLat: String = "\(visibleRegion.nearRight.latitude)"
+        let maxLat: String = "\(visibleRegion.farLeft.latitude)"
+        let minLon: String = "\(visibleRegion.farLeft.longitude)"
+        let maxLon: String = "\(visibleRegion.nearRight.longitude)"
+        
+        NetworkTool.sharedTools.getOnStreet (minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon) { (onStreetInfo, error) in
+            self.view.hideHud()
+            if error == nil {
+                self.onStreetList = onStreetInfo
+                print("Data get successfully.")
+                // Show Markers
+                self.showMarkersOnMap()
+            }
+            else{
+                self.view.showTextHud(content: "Network Error.")
+            }
+        }
+    }
+    
+    // Print Markers
+    func showMarkersOnMap() {
+        // Clear all Previous Marker
+        self.mapView.clear()
+        
+        // Get Marker Images
+        let blueMarker = UIImageView(image: UIImage(named: "Blue P.png"))
+        let redMarker = UIImageView(image: UIImage(named: "Red P.png"))
+        
+        for bay in self.onStreetList! {
+            let parkCoordinate = CLLocationCoordinate2D(latitude: bay.lat, longitude: bay.lon)
+            let feeString: String = bay.desc1! + "\n" + bay.desc2! + "\n" + bay.desc3!
+            
+            if self.mapView.projection.contains(parkCoordinate) {
+                let marker = GMSMarker()
+        
+                if bay.status!.isEqual("Unoccupied") {
+                    marker.iconView = blueMarker
+                }
+                else {
+                    marker.iconView = redMarker
+                }
+
+                marker.position = parkCoordinate
+                marker.title = bay.st_marker_id
+                marker.map = self.mapView
+                marker.snippet = feeString
+            }
+        }
+    }
+    
     
     // Show Wilson On Map
     func showWilsonOnMap(){
         self.view.showHudInView(view: view)
         NetworkTool.sharedTools.getWilsonLocation { (wilsonLocation, error) in
-            self.view.hideHud()
             if error == nil {
                 self.wilsonLocationList = wilsonLocation
                 print("WilsonLocation get successfully.")
@@ -220,6 +270,7 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
     // Get Wilson Fee
     func getWilsonFee(){
         NetworkTool.sharedTools.getWilsonFee { (wilsonFee, error) in
+            self.view.hideHud()
             if error == nil {
                 self.wilsonFeeList = wilsonFee
                 print("WilsonFee get successfully.")
@@ -247,7 +298,6 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
                 if wilson.id == record.place_id {
                     feeString = feeString + record.scope! + "  " + record.rate! + "\n"
                 }
-    
             }
             
             if self.mapView.projection.contains(parkCoordinate) {
@@ -263,113 +313,6 @@ class RTParkingViewController: UIViewController, GMSMapViewDelegate{
         }
     }
     
-    // Show Bays On Map
-    func showBaysOnMap(){
-        // Get Bay Info
-        NetworkTool.sharedTools.getBayInfo { (bayInfo, error) in
-            if error == nil {
-                self.bayInfoList = bayInfo
-                print("BayInfo get successfully.")
-                // Get Parking Status
-                self.getParkingStatus()
-            }
-            else{
-                self.view.showTextHud(content: "Network Error.")
-            }
-        }
-    }
-    
-    // Get Parking Status
-    func getParkingStatus(){
-        self.view.showHudInView(view: view)        
-        NetworkTool.sharedTools.getParkingStatus { (parkingStatus, error) in
-            //self.view.hideHud()
-            if error == nil {
-                self.parkingStatusList = parkingStatus
-                print("ParkingStatus get successfully.")
-                // Show Markers
-                self.getBayFee()
-            }
-            else{
-                self.view.showTextHud(content: "Network Error.")
-            }
-        }
-    }
-    
-    // Get Bay fee
-    func getBayFee(){
-        NetworkTool.sharedTools.getBayFee { ( bayFee, error) in
-            if error == nil {
-                self.bayFeeList = bayFee
-                print("BayFee get successfully.")
-                self.view.hideHud()
-                // Show Markers
-                self.showMarkersOnMap()
-            }
-            else{
-                self.view.showTextHud(content: "Network Error.")
-            }
-        }
-    }
-    
-    
-    
-    // Print Markers
-    func showMarkersOnMap() {
-        // Clear all Previous Marker
-        self.mapView.clear()
-        
-        // Get Marker Images
-        let blueMarker = UIImageView(image: UIImage(named: "Blue P.png"))
-        let redMarker = UIImageView(image: UIImage(named: "Red P.png"))
-        
-        for bay in self.bayInfoList! {
-            let parkCoordinate = CLLocationCoordinate2D(latitude: bay.lat, longitude: bay.lon)
-            let id = bay.bay_id
-            var status: String?
-            
-            for record in self.parkingStatusList! {
-                if id == record.bay_id {
-                    status = record.status
-                    break
-                }
-            }
-            
-            var feeString: String = ""
-            
-            for record in self.bayFeeList! {
-                if id == record.bay_id {
-                    feeString = feeString + record.desc1! + "\n"
-                    if !record.desc2!.isEqual(""){
-                        feeString = feeString + record.desc2! + "\n"
-                    }
-                    if !record.desc3!.isEqual(""){
-                        feeString = feeString + record.desc3! + "\n"
-                    }
-                }
-            }
-            
-            
-            if self.mapView.projection.contains(parkCoordinate) {
-                let marker = GMSMarker()
-                if status != nil{
-                    if status!.isEqual("Unoccupied") {
-                        marker.iconView = blueMarker
-                    }
-                    else {
-                        marker.iconView = redMarker
-                    }
-                }else{
-                    marker.iconView = redMarker
-                }
-                
-                marker.position = parkCoordinate
-                marker.title = bay.st_marker_id
-                marker.map = self.mapView
-                marker.snippet = feeString
-            }
-        }
-    }
     
 }
 
@@ -426,7 +369,7 @@ extension RTParkingViewController: GMSAutocompleteViewControllerDelegate {
         })
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.0) {
             if self.onStreetMode == true {
-                self.showBaysOnMap()
+                self.showOnStreet()
             }else if self.onStreetMode == false {
                 self.showWilsonOnMap()
             }

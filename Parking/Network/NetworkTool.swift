@@ -22,54 +22,6 @@ class NetworkTool: Alamofire.SessionManager {
         return NetworkTool(configuration: configuration)
     }()
     
-    // Get Bay Info data from server
-    func getBayInfo( finished: @escaping (_ bayInfo:[BayInfo]?, _ error: Error?) -> ()) {
-        let bayinfoURL = SERVER_URL + "bayinfo"
-        NSLog(bayinfoURL)
-        
-        request(bayinfoURL, method: HTTPMethod.get, parameters: nil, encoding: URLEncoding.default, headers: nil).responseJSON(queue: DispatchQueue.main, options: .mutableContainers) { (response) in
-            if response.result.isSuccess {
-                if let value = response.result.value {
-                    let swiftyJsonVar = JSON(value)
-                    var bayInfo = [BayInfo]()
-                    for (_, dict) : (String, JSON) in swiftyJsonVar {
-                        let bay = BayInfo(dict: dict)
-                        bayInfo.append(bay)
-                    }
-                    finished(bayInfo, nil)
-                } else {
-                    finished(nil, NSError.init(domain: "Sever Error", code: 44, userInfo: nil))
-                }
-            } else {
-                finished(nil, response.result.error)
-            }
-        }
-    }
-    
-    // Get Parking Status from server
-    func getParkingStatus( finished: @escaping (_ parkingstatus:[ParkingStatus]?, _ error: Error?) -> ()) {
-        let parkingstatusURL = SERVER_URL + "parkingstatus"
-        NSLog(parkingstatusURL)
-        
-        request(parkingstatusURL, method: HTTPMethod.get, parameters: nil, encoding: URLEncoding.default, headers: nil).responseJSON(queue: DispatchQueue.main, options: .mutableContainers) { (response) in
-            if response.result.isSuccess {
-                if let value = response.result.value {
-                    let swiftyJsonVar = JSON(value)
-                    var parkingstatus = [ParkingStatus]()
-                    for (_, dict) : (String, JSON) in swiftyJsonVar {
-                        let record = ParkingStatus(dict: dict)
-                        parkingstatus.append(record)
-                    }
-                    finished(parkingstatus, nil)
-                } else {
-                    finished(nil, NSError.init(domain: "Sever Error", code: 44, userInfo: nil))
-                }
-            } else {
-                finished(nil, response.result.error)
-            }
-        }
-    }
-    
     // Get Wilson Locations
     func getWilsonLocation( finished: @escaping (_ wilsonlocation:[WilsonLocation]?, _ error: Error?) -> ()) {
         let wilsonlocationURL = SERVER_URL + "wilsonlocation"
@@ -118,21 +70,21 @@ class NetworkTool: Alamofire.SessionManager {
         }
     }
     
-    // Get Bay Fees
-    func getBayFee( finished: @escaping (_ bayfee:[BayFee]?, _ error: Error?) -> ()) {
-        let bayfeeURL = SERVER_URL + "bayfee"
-        NSLog(bayfeeURL)
+    // Get On-Street Parking
+    func getOnStreet(minLat: String, maxLat: String, minLon: String, maxLon: String, finished: @escaping (_ onstreetinfo:[OnStreetInfo]?, _ error: Error?) -> ()) {
+        let onstreetinfoURL = SERVER_URL + "onstreetinfo?minLat=" + minLat + "&maxLat=" + maxLat + "&minLon=" + minLon + "&maxLon=" + maxLon
+        NSLog(onstreetinfoURL)
         
-        request(bayfeeURL, method: HTTPMethod.get, parameters: nil, encoding: URLEncoding.default, headers: nil).responseJSON(queue: DispatchQueue.main, options: .mutableContainers) { (response) in
+        request(onstreetinfoURL, method: HTTPMethod.get, parameters: nil, encoding: URLEncoding.default, headers: nil).responseJSON(queue: DispatchQueue.main, options: .mutableContainers) { (response) in
             if response.result.isSuccess {
                 if let value = response.result.value {
                     let swiftyJsonVar = JSON(value)
-                    var bayfee = [BayFee]()
+                    var onstreetinfo = [OnStreetInfo]()
                     for (_, dict) : (String, JSON) in swiftyJsonVar {
-                        let record = BayFee(dict: dict)
-                        bayfee.append(record)
+                        let record = OnStreetInfo(dict: dict)
+                        onstreetinfo.append(record)
                     }
-                    finished(bayfee, nil)
+                    finished(onstreetinfo, nil)
                 } else {
                     finished(nil, NSError.init(domain: "Sever Error", code: 44, userInfo: nil))
                 }
